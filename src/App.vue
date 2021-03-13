@@ -1,7 +1,7 @@
 <template>
   <div id="app" class="mx-auto overflow-hidden">
     <Header />
-    <List />
+    <router-view :key="$route.fullPath"></router-view>
   </div>
 </template>
 
@@ -12,6 +12,9 @@ export default {
 </script>
 
 <style>
+body {
+  background-color: #fafafa;
+}
 #app {
   margin: 0;
 }

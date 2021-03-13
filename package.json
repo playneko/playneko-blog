@@ -10,8 +10,11 @@
   "dependencies": {
     "axios": "^0.21.1",
     "core-js": "^3.6.5",
+    "markdown-it-vue": "^1.1.6",
     "vue": "^2.6.11",
-    "vuetify": "^2.4.0"
+    "vue-router": "^3.5.1",
+    "vuetify": "^2.4.0",
+    "vuex": "^3.6.2"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",

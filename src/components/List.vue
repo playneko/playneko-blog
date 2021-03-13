@@ -25,7 +25,8 @@
 
                 <v-img
                     :src="item.board_thumnail"
-                    height="200px"
+                    class="image-click"
+                    @click="routerLink('DetailInfo', item.no)"
                 ></v-img>
 
                 <v-expand-transition>
@@ -40,10 +41,10 @@
                 <div v-if="paging.total > 0" class="text-center">
                     <v-pagination
                         v-model="pageNum"
-                        :length="paging.total - 1"
+                        :length="paging.total"
                         :total-visible="5"
                         @input="pageChange"
-                        color="purple"
+                        color="#424242"
                     ></v-pagination>
                 </div>
             </div>
@@ -73,29 +74,33 @@ export default {
             posts: [],
             paging: [],
             pageNum: 1,
-            limitPageNum: 10,
+            limitPageNum: 8,
             catpage: 0,
             keyword: "",
         }
     },
     created () {
-        this.fetchData();
+        this.catpage = this.$route.params.id ? this.$route.params.id : 0
+        this.fetchData()
     },
     methods: {
         fetchData: function () {
-            const baseURI = 'https://akibatv.playneko.com/?/api/blog/category';
+            const baseURI = 'https://akibatv.playneko.com/?/api/blog/category'
             this.$http.get(`${baseURI}?page=${this.pageNum}&limitpage=${this.limitPageNum}&catpage=${this.catpage}&keyword=${this.keyword}&projectid=9a27a65f138f8f6f4991323212ebb408`)
             .then((result) => {
-                this.posts = result.data.list;
-                this.paging = result.data.paging;
+                this.posts = result.data.list
+                this.paging = result.data.paging
             })
             .catch((error) => {
-                console.log(error);
-            });
+                console.log(error)
+            })
         },
         pageChange: function (pageNumber) {
-            this.pageNum = pageNumber;
-            this.fetchData();
+            this.pageNum = pageNumber
+            this.fetchData()
+        },
+        routerLink: function (name, id) {
+            this.$router.push({name: name, params: {id : id}})
         }
     }
 }
@@ -134,6 +139,10 @@ export default {
 }
 .v-progress-circular {
     margin: 1rem;
+}
+.image-click {
+    height: 200px;
+    cursor: pointer;
 }
 .loading {
     display: flex;
