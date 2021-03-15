@@ -7,13 +7,11 @@ import vuetify from './plugins/vuetify'
 
 import Header from './components/page/Header'
 import Footer from './components/page/Footer'
-import Navbar from './components/page/Navbar'
 
 Vue.config.productionTip = false
 Vue.prototype.$http = axios
 Vue.component('Header', Header)
 Vue.component('Footer', Footer)
-Vue.component('Navbar', Navbar)
 
 new Vue({
   store,

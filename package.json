@@ -12,6 +12,7 @@
     "core-js": "^3.6.5",
     "markdown-it-vue": "^1.1.6",
     "vue": "^2.6.11",
+    "vue-disqus": "^4.0.1",
     "vue-router": "^3.5.1",
     "vuetify": "^2.4.0",
     "vuex": "^3.6.2"

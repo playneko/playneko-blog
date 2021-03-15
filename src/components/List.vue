@@ -86,14 +86,17 @@ export default {
     },
     methods: {
         fetchData: function() {
+            this.loading = true
             const baseURI = 'https://akibatv.playneko.com/?/api/blog/category'
             this.$http.get(`${baseURI}?page=${this.pageNum}&limitpage=${this.limitPageNum}&catpage=${this.catpage}&keyword=${this.keyword}&projectid=9a27a65f138f8f6f4991323212ebb408`)
             .then((result) => {
                 this.posts = result.data.list
                 this.paging = result.data.paging
+                this.loading = false
             })
             .catch((error) => {
                 console.log(error)
+                this.loading = false
             })
         },
         pageChange: function(pageNumber) {
@@ -115,6 +118,7 @@ export default {
 }
 .paging-root {
     padding-top: 15px;
+    padding-bottom: 20px;
     width: calc(100vw);
     justify-content: center;
 }
@@ -151,5 +155,11 @@ export default {
     color: #cddc39;
     align-items: center;
     justify-content: center;
+}
+@media (min-width: 1721px) {
+    .content {
+        margin: 0 auto;
+        max-width: calc(100vw - 26vw);
+    }
 }
 </style>

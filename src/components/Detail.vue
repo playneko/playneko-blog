@@ -20,7 +20,7 @@
                             text-color="#ffffff"
                         >
                             <v-icon left>mdi-alarm</v-icon>
-                            2020/09/14 01:00
+                            {{posts[0].board_date}}
                         </v-chip>
                     </div>
                     <markdown-it-vue-light class="md-body" :content="posts[0].board_article" />
@@ -33,6 +33,9 @@
                         >
                             #{{item}}
                         </v-chip>
+                    </div>
+                    <div class='comments'>
+                        <Disqus shortname='playneko-github-io' />
                     </div>
                 </div>
 
@@ -54,6 +57,7 @@
 </template>
 
 <script>
+import { Disqus } from 'vue-disqus'
 import MarkdownItVueLight from 'markdown-it-vue/dist/markdown-it-vue-light.umd.min.js'
 import 'markdown-it-vue/dist/markdown-it-vue-light.css'
 
@@ -72,17 +76,21 @@ export default {
     },
     methods: {
         fetchData: function() {
+            this.loading = true
             const baseURI = 'https://akibatv.playneko.com/?/api/blog/detail'
             this.$http.get(`${baseURI}?id=${this.id}&projectid=9a27a65f138f8f6f4991323212ebb408`)
             .then((result) => {
                 this.posts = result.data.detail
+                this.loading = false
             })
             .catch((error) => {
                 console.log(error)
+                this.loading = false
             })
         }
     },
     components: {
+        Disqus,
         MarkdownItVueLight
     }
 }

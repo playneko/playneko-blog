@@ -6,6 +6,19 @@
         >
             <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
             <v-toolbar-title>{{title}}</v-toolbar-title>
+            <v-col
+                cols="2"
+                class="search-align"
+            >
+                <v-icon class="search-icon">mdi-magnify</v-icon>
+                <v-text-field
+                    ref="search"
+                    full-width
+                    hide-details
+                    label="Search"
+                    single-line
+                ></v-text-field>
+            </v-col>
         </v-app-bar>
 
         <v-navigation-drawer
@@ -111,5 +124,16 @@ export default {
 }
 .list-item_title > div > div > div {
     font-size: 1rem !important;
+}
+.search-align {
+    display: flex;
+    margin-left: auto;
+}
+.search-icon {
+    float: left;
+    align-items: center;
+}
+.search-align > div > div > div {
+    border-style: unset;
 }
 </style>
