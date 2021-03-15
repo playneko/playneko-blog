@@ -67,7 +67,7 @@
 
 <script>
 export default {
-    data () {
+    data() {
         return {
             loading: false,
             error: null,
@@ -79,12 +79,13 @@ export default {
             keyword: "",
         }
     },
-    created () {
-        this.catpage = this.$route.params.id ? this.$route.params.id : 0
+    created() {
+        this.catpage = this.$store.getters.getCategory ? this.$store.getters.getCategory : 0
+        this.pageNum = this.$store.getters.getPageNumber ? this.$store.getters.getPageNumber : 1
         this.fetchData()
     },
     methods: {
-        fetchData: function () {
+        fetchData: function() {
             const baseURI = 'https://akibatv.playneko.com/?/api/blog/category'
             this.$http.get(`${baseURI}?page=${this.pageNum}&limitpage=${this.limitPageNum}&catpage=${this.catpage}&keyword=${this.keyword}&projectid=9a27a65f138f8f6f4991323212ebb408`)
             .then((result) => {
@@ -95,11 +96,12 @@ export default {
                 console.log(error)
             })
         },
-        pageChange: function (pageNumber) {
+        pageChange: function(pageNumber) {
             this.pageNum = pageNumber
             this.fetchData()
+            this.$store.commit('addPageNumber', pageNumber)
         },
-        routerLink: function (name, id) {
+        routerLink: function(name, id) {
             this.$router.push({name: name, params: {id : id}})
         }
     }

@@ -3,8 +3,37 @@
         <v-row no-gutters class="margin-top">
             <v-col cols="12" class="div-center">
                 <div v-if="Object.keys(posts).length > 0" class="content">
-                    <div>{{posts[0].board_title}}</div>
+                    <div class="content-title">{{posts[0].board_title}}</div>
+                    <div class="content-division_top">
+                        <v-chip
+                            class="ma-2 chip-category"
+                            color="#424242"
+                            text-color="#ffffff"
+                            v-for="(item, index) in posts[0].cat_name" :key="index"
+                        >
+                            <v-icon left>mdi-timeline-text</v-icon>
+                            {{item}}
+                        </v-chip>
+                        <v-chip
+                            class="ma-2 chip-datetime"
+                            color="#795548"
+                            text-color="#ffffff"
+                        >
+                            <v-icon left>mdi-alarm</v-icon>
+                            2020/09/14 01:00
+                        </v-chip>
+                    </div>
                     <markdown-it-vue-light class="md-body" :content="posts[0].board_article" />
+                    <div class="content-division_bottom">
+                        <v-chip
+                            class="ma-2 chip-tag"
+                            color="#cddc39"
+                            text-color="#6d6d6d"
+                            v-for="(item, index) in posts[0].tag_name" :key="index"
+                        >
+                            #{{item}}
+                        </v-chip>
+                    </div>
                 </div>
 
                 <div v-if="loading" class="loading">
@@ -29,7 +58,7 @@ import MarkdownItVueLight from 'markdown-it-vue/dist/markdown-it-vue-light.umd.m
 import 'markdown-it-vue/dist/markdown-it-vue-light.css'
 
 export default {
-    data () {
+    data() {
         return {
             loading: false,
             error: null,
@@ -37,17 +66,16 @@ export default {
             id: null,
         }
     },
-    created () {
+    created() {
         this.id = this.$route.params.id ? this.$route.params.id : ""
         this.fetchData()
     },
     methods: {
-        fetchData: function () {
+        fetchData: function() {
             const baseURI = 'https://akibatv.playneko.com/?/api/blog/detail'
             this.$http.get(`${baseURI}?id=${this.id}&projectid=9a27a65f138f8f6f4991323212ebb408`)
             .then((result) => {
                 this.posts = result.data.detail
-                console.log(this.posts)
             })
             .catch((error) => {
                 console.log(error)
@@ -68,6 +96,25 @@ export default {
     margin: 0 auto;
     justify-content: center;
 }
+.chip-category {
+    margin-right: 5px;
+    height: 27px !important;
+    font-size: 13px !important;
+}
+.chip-datetime {
+    margin-right: 5px;
+    height: 27px !important;
+    font-size: 13px !important;
+}
+.chip-tag {
+    margin-right: 4px;
+    margin-bottom: 7px;
+    height: 27px !important;
+    font-size: 13px !important;
+}
+.chip-category i, .chip-datetime i {
+    font-size: 18px !important;
+}
 .content {
     border: 3px solid #fff;
     border-radius: 10px;
@@ -78,10 +125,27 @@ export default {
     max-width: calc(100vw);
     box-shadow: 5px 5px 5px #bdbdbd;
 }
+.content-division_top {
+    margin-top: 5px;
+    margin-bottom: 20px;
+}
+.content-division_bottom {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
 .loading {
     display: flex;
     color: #cddc39;
     align-items: center;
     justify-content: center;
+}
+.content-title {
+    font-size: 30px;
+    font-weight: 500;
+}
+@media (min-width: 1721px) {
+    .content {
+        max-width: calc(100vw - 40vw);
+    }
 }
 </style>

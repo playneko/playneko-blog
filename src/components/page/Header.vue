@@ -90,14 +90,15 @@
 
 <script>
 export default {
-    name: 'Header',
     data: () => ({
         drawer: false,
         group: null,
         title: "여러가지 개발정보를 공유하는 블로그 입니다."
     }),
     methods: {
-        routerLink: function (name, id) {
+        routerLink: function(name, id) {
+            this.$store.commit('addCategory', id)
+            this.$store.commit('addPageNumber', 1)
             this.$router.push({name: name, params: {id : id}})
         }
     }

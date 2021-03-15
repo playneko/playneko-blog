@@ -4,7 +4,6 @@ import Router from 'vue-router'
 Vue.use(Router)
 
 const List = () => import(/* webpackChunkName: "List" */ "./components/List.vue")
-const Detail = () => import(/* webpackChunkName: "Detail" */ "./components/Detail.vue")
 
 export default new Router({
     mode: 'history',
@@ -53,7 +52,7 @@ export default new Router({
         }, {
             path: '/detail/:id',
             name: 'DetailInfo',
-            component: Detail
+            component: () => import(/* webpackChunkName: "Detail" */ "./components/Detail.vue")
         }
     ]
 })

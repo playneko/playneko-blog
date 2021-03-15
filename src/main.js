@@ -1,9 +1,9 @@
 import Vue from 'vue'
 import axios from 'axios'
 import App from './App.vue'
-import store from './store.js'
-import router from './router.js'
-import vuetify from './plugins/vuetify.js'
+import store from './store'
+import router from './router'
+import vuetify from './plugins/vuetify'
 
 import Header from './components/page/Header'
 import Footer from './components/page/Footer'
