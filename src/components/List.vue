@@ -15,16 +15,16 @@
                     </v-avatar>
                     <div>
                         <v-card-title>
-                        {{item.board_title}}
+                        {{item.boardTitle}}
                         </v-card-title>
                         <v-card-subtitle>
-                        {{item.board_date}}
+                        {{item.boardDate}}
                         </v-card-subtitle>
                     </div>
                 </div>
 
                 <v-img
-                    :src="item.board_thumnail"
+                    :src="item.boardThumnail"
                     class="image-click"
                     @click="routerLink('DetailInfo', item.no)"
                 ></v-img>
@@ -32,7 +32,7 @@
                 <v-expand-transition>
                 <div>
                     <v-card-text>
-                    {{item.board_comment}}
+                    {{item.boardComment}}
                     </v-card-text>
                 </div>
                 </v-expand-transition>
@@ -87,8 +87,8 @@ export default {
     methods: {
         fetchData: function() {
             this.loading = true
-            const baseURI = 'https://akibatv.playneko.com/?/api/blog/category'
-            this.$http.get(`${baseURI}?page=${this.pageNum}&limitpage=${this.limitPageNum}&catpage=${this.catpage}&keyword=${this.keyword}&projectid=9a27a65f138f8f6f4991323212ebb408`)
+            const baseURI = '/api/blog/category'
+            this.$http.get(`${baseURI}?pagenum=${this.pageNum}&limitpage=${this.limitPageNum}&catpage=${this.catpage}&keyword=${this.keyword}&projectid=9a27a65f138f8f6f4991323212ebb408`)
             .then((result) => {
                 this.posts = result.data.list
                 this.paging = result.data.paging

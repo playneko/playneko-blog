@@ -3,13 +3,13 @@
         <v-row no-gutters class="margin-top">
             <v-col cols="12" class="div-center">
                 <div v-if="Object.keys(posts).length > 0" class="content">
-                    <div class="content-title">{{posts[0].board_title}}</div>
+                    <div class="content-title">{{posts.boardTitle}}</div>
                     <div class="content-division_top">
                         <v-chip
                             class="ma-2 chip-category"
                             color="#424242"
                             text-color="#ffffff"
-                            v-for="(item, index) in posts[0].cat_name" :key="index"
+                            v-for="(item, index) in posts.catName" :key="index"
                         >
                             <v-icon left>mdi-timeline-text</v-icon>
                             {{item}}
@@ -20,16 +20,16 @@
                             text-color="#ffffff"
                         >
                             <v-icon left>mdi-alarm</v-icon>
-                            {{posts[0].board_date}}
+                            {{posts.boardDate}}
                         </v-chip>
                     </div>
-                    <markdown-it-vue-light class="md-body" :content="posts[0].board_article" />
+                    <markdown-it-vue-light class="md-body" :content="posts.boardArticle" />
                     <div class="content-division_bottom">
                         <v-chip
                             class="ma-2 chip-tag"
                             color="#cddc39"
                             text-color="#6d6d6d"
-                            v-for="(item, index) in posts[0].tag_name" :key="index"
+                            v-for="(item, index) in posts.tagName" :key="index"
                         >
                             #{{item}}
                         </v-chip>
@@ -77,10 +77,10 @@ export default {
     methods: {
         fetchData: function() {
             this.loading = true
-            const baseURI = 'https://akibatv.playneko.com/?/api/blog/detail'
+            const baseURI = '/api/blog/detail'
             this.$http.get(`${baseURI}?id=${this.id}&projectid=9a27a65f138f8f6f4991323212ebb408`)
             .then((result) => {
-                this.posts = result.data.detail
+                this.posts = result.data
                 this.loading = false
             })
             .catch((error) => {

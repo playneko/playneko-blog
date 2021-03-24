@@ -5,7 +5,7 @@ Vue.use(Router)
 
 const List = () => import(/* webpackChunkName: "List" */ "./components/List.vue")
 
-export default new Router({
+const vueRouter = new Router({
     mode: 'history',
     base: process.env.BASE_URL,
     routes: [
@@ -56,3 +56,10 @@ export default new Router({
         }
     ]
 })
+
+vueRouter.beforeEach((to, from, next) => {
+    document.title = "Playneko - 여러가지 개발정보를 공유하는 블로그 입니다."
+    next()
+})
+
+export default vueRouter

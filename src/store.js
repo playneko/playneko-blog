@@ -14,6 +14,9 @@ export default new Vuex.Store({
         },
         getPageNumber: state => {
             return state.pageNumber
+        },
+        getAxiosUrl: state => {
+            return state.axiosUrl
         }
     },
     mutations: {
