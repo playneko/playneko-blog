@@ -23,7 +23,17 @@
                             {{posts.boardDate}}
                         </v-chip>
                     </div>
-                    <markdown-it-vue-light class="md-body" :content="posts.boardArticle" />
+                    <div class="md-body">
+                        <Adsense
+                            data-ad-client="ca-pub-6351488118670184"
+                            data-ad-slot="1919404640">
+                        </Adsense>
+                        <markdown-it-vue-light :content="posts.boardArticle" />
+                        <Adsense
+                            data-ad-client="ca-pub-6351488118670184"
+                            data-ad-slot="1919404640">
+                        </Adsense>
+                    </div>
                     <div class="content-division_bottom">
                         <v-chip
                             class="ma-2 chip-tag"
@@ -78,6 +88,7 @@ export default {
         fetchData: function() {
             this.loading = true
             const baseURI = '/api/blog/detail'
+            // const baseURI = 'http://ec2-54-249-69-88.ap-northeast-1.compute.amazonaws.com:8090/api/blog/detail'
             this.$http.get(`${baseURI}?id=${this.id}&projectid=9a27a65f138f8f6f4991323212ebb408`)
             .then((result) => {
                 this.posts = result.data

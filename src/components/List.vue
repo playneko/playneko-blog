@@ -9,7 +9,7 @@
                 <div class="card-top">
                     <v-avatar>
                         <img
-                            src="https://playneko.com/wp-content/uploads/2020/04/cropped-avatarimg_user1.png"
+                            src="https://firebasestorage.googleapis.com/v0/b/cocoatalk-41442.appspot.com/o/avata%2FkCvqARth.png?alt=media&token=23aedec4-4aa9-410a-84d1-7e7cb507c345"
                             alt="Avatar"
                         >
                     </v-avatar>
@@ -88,6 +88,7 @@ export default {
         fetchData: function() {
             this.loading = true
             const baseURI = '/api/blog/category'
+            // const baseURI = 'http://ec2-54-249-69-88.ap-northeast-1.compute.amazonaws.com:8090/api/blog/category'
             this.$http.get(`${baseURI}?pagenum=${this.pageNum}&limitpage=${this.limitPageNum}&catpage=${this.catpage}&keyword=${this.keyword}&projectid=9a27a65f138f8f6f4991323212ebb408`)
             .then((result) => {
                 this.posts = result.data.list
