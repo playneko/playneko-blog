@@ -89,6 +89,7 @@ export default {
             this.loading = true
             const baseURI = '/api/blog/detail'
             // const baseURI = 'http://ec2-54-249-69-88.ap-northeast-1.compute.amazonaws.com:8090/api/blog/detail'
+            // const baseURI = 'https://playneko.com:8090/api/blog/detail'
             this.$http.get(`${baseURI}?id=${this.id}&projectid=9a27a65f138f8f6f4991323212ebb408`)
             .then((result) => {
                 this.posts = result.data
