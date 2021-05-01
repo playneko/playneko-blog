@@ -1,69 +1,71 @@
 <template>
-    <v-container>
-        <v-row no-gutters class="margin-top">
-            <v-col cols="12" class="div-center">
-                <div v-if="Object.keys(posts).length > 0" class="content">
-                    <div class="content-title">{{posts.boardTitle}}</div>
-                    <div class="content-division_top">
-                        <v-chip
-                            class="ma-2 chip-category"
-                            color="#424242"
-                            text-color="#ffffff"
-                            v-for="(item, index) in posts.catName" :key="index"
-                        >
-                            <v-icon left>mdi-timeline-text</v-icon>
-                            {{item}}
-                        </v-chip>
-                        <v-chip
-                            class="ma-2 chip-datetime"
-                            color="#795548"
-                            text-color="#ffffff"
-                        >
-                            <v-icon left>mdi-alarm</v-icon>
-                            {{posts.boardDate}}
-                        </v-chip>
+    <div>
+        <v-container>
+            <v-row no-gutters class="margin-top">
+                <v-col cols="12" class="div-center">
+                    <div v-if="Object.keys(posts).length > 0" class="content">
+                        <div class="content-title">{{posts.boardTitle}}</div>
+                        <div class="content-division_top">
+                            <v-chip
+                                class="ma-2 chip-category"
+                                color="#424242"
+                                text-color="#ffffff"
+                                v-for="(item, index) in posts.catName" :key="index"
+                            >
+                                <v-icon left>mdi-timeline-text</v-icon>
+                                {{item}}
+                            </v-chip>
+                            <v-chip
+                                class="ma-2 chip-datetime"
+                                color="#795548"
+                                text-color="#ffffff"
+                            >
+                                <v-icon left>mdi-alarm</v-icon>
+                                {{posts.boardDate}}
+                            </v-chip>
+                        </div>
+                        <div class="md-body">
+                            <Adsense
+                                data-ad-client="ca-pub-6351488118670184"
+                                data-ad-slot="1919404640">
+                            </Adsense>
+                            <markdown-it-vue-light :content="posts.boardArticle" />
+                            <Adsense
+                                data-ad-client="ca-pub-6351488118670184"
+                                data-ad-slot="1919404640">
+                            </Adsense>
+                        </div>
+                        <div class="content-division_bottom">
+                            <v-chip
+                                class="ma-2 chip-tag"
+                                color="#cddc39"
+                                text-color="#6d6d6d"
+                                v-for="(item, index) in posts.tagName" :key="index"
+                            >
+                                #{{item}}
+                            </v-chip>
+                        </div>
+                        <div class='comments'>
+                            <Disqus shortname='playneko-github-io' />
+                        </div>
                     </div>
-                    <div class="md-body">
-                        <Adsense
-                            data-ad-client="ca-pub-6351488118670184"
-                            data-ad-slot="1919404640">
-                        </Adsense>
-                        <markdown-it-vue-light :content="posts.boardArticle" />
-                        <Adsense
-                            data-ad-client="ca-pub-6351488118670184"
-                            data-ad-slot="1919404640">
-                        </Adsense>
-                    </div>
-                    <div class="content-division_bottom">
-                        <v-chip
-                            class="ma-2 chip-tag"
-                            color="#cddc39"
-                            text-color="#6d6d6d"
-                            v-for="(item, index) in posts.tagName" :key="index"
-                        >
-                            #{{item}}
-                        </v-chip>
-                    </div>
-                    <div class='comments'>
-                        <Disqus shortname='playneko-github-io' />
-                    </div>
-                </div>
 
-                <div v-if="loading" class="loading">
-                    <v-progress-circular
-                        :size="50"
-                        :width="7"
-                        color="purple"
-                        indeterminate
-                    ></v-progress-circular>
-                </div>
+                    <div v-if="loading" class="loading">
+                        <v-progress-circular
+                            :size="50"
+                            :width="7"
+                            color="purple"
+                            indeterminate
+                        ></v-progress-circular>
+                    </div>
 
-                <div v-if="error" class="error">
-                    {{ error }}
-                </div>
-            </v-col>
-        </v-row>
-    </v-container>
+                    <div v-if="error" class="error">
+                        {{ error }}
+                    </div>
+                </v-col>
+            </v-row>
+        </v-container>
+    </div>
 </template>
 
 <script>
@@ -85,9 +87,9 @@ export default {
         this.fetchData()
     },
     methods: {
-        fetchData: function() {
+        fetchData () {
             this.loading = true
-            const baseURI = '/api/blog/detail'
+            const baseURI = this.$proxyUrl + '/api/blog/detail'
             // const baseURI = 'http://ec2-54-249-69-88.ap-northeast-1.compute.amazonaws.com:8090/api/blog/detail'
             // const baseURI = 'https://playneko.com:8090/api/blog/detail'
             this.$http.get(`${baseURI}?id=${this.id}&projectid=9a27a65f138f8f6f4991323212ebb408`)
