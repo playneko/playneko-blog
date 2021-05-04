@@ -6,8 +6,8 @@ module.exports = {
             '/api': {
                 // 프록시 요청을 보낼 서버의 주소
                 // target: 'http://ec2-54-249-69-88.ap-northeast-1.compute.amazonaws.com:8090'
-                target: 'http://localhost:8090'
-                // target: 'https://playneko.com:8090'
+                // target: 'http://localhost:8090'
+                target: 'https://playneko.com:8090'
             },
             '/oauth/authorize': {
                 target: 'https://kauth.kakao.com/oauth/authorize',

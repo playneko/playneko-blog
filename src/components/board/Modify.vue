@@ -93,7 +93,9 @@ export default {
             // const baseURI = 'https://playneko.com:8090/api/blog/detail'
             await this.$http.get(`${baseURI}?id=${this.params.id}`)
             .then((result) => {
-                this.posts = result.data
+                const data = result.data
+                const dencrypt = this.$aesDencrypt(this.$secretKey, this.$secretIv, data)
+                this.posts = JSON.parse(dencrypt)
                 this.subject = this.posts.boardSubject
                 this.article = this.posts.boardArticle
             })
@@ -139,7 +141,8 @@ export default {
             return false
         },
         sendPostData: async function(baseURI, params) {
-            await this.$http.post(baseURI, params)
+            const encrypt = this.$aesEncrypt(this.$secretKey, this.$secretIv, params)
+            await this.$http.post(baseURI, {param: encrypt})
             .then((result) => {
                 if (result.data.success === false) {
                     this.error = "게시글 저장에 실패 했습니다. 잠시후 다시 시도해 주시기 바랍니다."

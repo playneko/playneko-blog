@@ -14,7 +14,7 @@
                     </div>
                     <div v-show="loading === false">
                         <KakaoLogin
-                            api-key="58d6f516d73f54899a26b50003d2cec8"
+                            api-key=""
                             image="kakao_account_login_btn_medium_wide"
                             :on-success=onSuccess
                             :on-failure=onFailure
@@ -97,8 +97,9 @@ export default {
             }
         },
         checkUser (userId, profile) {
+            const encrypt = this.$aesEncrypt(this.$secretKey, this.$secretIv, {userId: userId.id})
             const baseURI = this.$proxyUrl + '/api/user/check/profile'
-            this.$http.post(baseURI, {userId: userId.id})
+            this.$http.post(baseURI, {param: encrypt})
             .then((result) => {
                 var count = result.data.cnt
                 if (count > 0) {
@@ -116,13 +117,13 @@ export default {
             })
         },
         insertUser (userId, profile) {
-            const baseURI = this.$proxyUrl + '/api/user/insert/profile'
-            const params = {
+            const encrypt = this.$aesEncrypt(this.$secretKey, this.$secretIv, {
                 userId: userId.id,
                 nickname: profile.nickname,
                 thumbnail: profile.thumbnail_image_url
-            }
-            this.$http.post(baseURI, params)
+            })
+            const baseURI = this.$proxyUrl + '/api/user/insert/profile'
+            this.$http.post(baseURI, {param: encrypt})
             .then(() => {
                 this.getLoginProfile()
             })
@@ -134,13 +135,16 @@ export default {
         },
         getLoginProfile () {
             if (!this.$isEmpty(this.kakaoId, 1)) {
+                const encrypt = this.$aesEncrypt(this.$secretKey, this.$secretIv, {userId: this.kakaoId})
                 const baseURI = this.$proxyUrl + '/api/user/get/profile'
-                this.$http.post(baseURI, {userId: this.kakaoId})
+                this.$http.post(baseURI, {param: encrypt})
                 .then((result) => {
-                    const kakaoData = result.data.profile[0]
+                    const data = result.data
+                    const dencrypt = this.$aesDencrypt(this.$secretKey, this.$secretIv, data)
+                    const kakaoData = JSON.parse(dencrypt)
                     this.$store.commit('addKakaoId', this.kakaoId)
-                    this.$store.commit('addKakaoNickname', kakaoData.nickname)
-                    this.$store.commit('addKakaoThumbnail', kakaoData.thumbnail)
+                    this.$store.commit('addKakaoNickname', kakaoData[0].nickname)
+                    this.$store.commit('addKakaoThumbnail', kakaoData[0].thumbnail)
                     // 로그인 유무 True로 전환
                     this.$store.commit('addIsLoginAuth', true)
                     this.loading = false

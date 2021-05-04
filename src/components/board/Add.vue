@@ -131,7 +131,8 @@ export default {
             this.$router.go(-1)
         },
         sendPostData: async function(baseURI, params) {
-            await this.$http.post(baseURI, params)
+            const encrypt = this.$aesEncrypt(this.$secretKey, this.$secretIv, params)
+            await this.$http.post(baseURI, {param: encrypt})
             .then((result) => {
                 if (result.data.success === false) {
                     this.error = "게시글 저장에 실패 했습니다. 잠시후 다시 시도해 주시기 바랍니다."

@@ -149,8 +149,13 @@ export default {
         },
         updateUserProfile () {
             if (!this.$isEmpty(this.kakaoId, 1)) {
+                const encrypt = this.$aesEncrypt(this.$secretKey, this.$secretIv, {
+                    userId: this.kakaoId,
+                    nickname: this.nickname,
+                    thumbnail: this.thumbnail
+                })
                 const baseURI = this.$proxyUrl + '/api/user/update/profile'
-                this.$http.post(baseURI, {userId: this.kakaoId, nickname: this.nickname, thumbnail: this.thumbnail})
+                this.$http.post(baseURI, {param: encrypt})
                 .then((result) => {
                     if (result.data.success === true) {
                         this.$store.commit('addKakaoId', this.kakaoId)

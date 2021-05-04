@@ -61,7 +61,7 @@
                                     v-model="commentText"
                                     class="content-comment-textarea"
                                 ></v-textarea>
-                                <v-btn tile color="#dedede" class="content-comment-write" @click="handlerWriteComment(posts.userId)">
+                                <v-btn tile color="#dedede" class="content-comment-write" @click="handlerWriteComment">
                                     <v-icon left>mdi-plus-thick</v-icon>
                                     저장
                                 </v-btn>
@@ -192,7 +192,9 @@ export default {
             // const baseURI = 'https://playneko.com:8090/api/blog/detail'
             await this.$http.get(`${baseURI}?id=${this.id}`)
             .then((result) => {
-                this.posts = result.data
+                const data = result.data
+                const dencrypt = this.$aesDencrypt(this.$secretKey, this.$secretIv, data)
+                this.posts = JSON.parse(dencrypt)
                 this.loading = false
             })
             .catch((error) => {
@@ -204,7 +206,9 @@ export default {
             const baseURI = this.$proxyUrl + '/api/board/detail/comment'
             await this.$http.get(`${baseURI}?id=${this.id}`)
             .then((result) => {
-                this.comments = result.data
+                const data = result.data
+                const dencrypt = this.$aesDencrypt(this.$secretKey, this.$secretIv, data)
+                this.comments = JSON.parse(dencrypt)
             })
             .catch((error) => {
                 console.log(error)
@@ -226,8 +230,8 @@ export default {
                 this.routerLink("BoardModify")
             }
         },
-        handlerWriteComment (userId) {
-            if (this.doAuthUserCheck(userId)) {
+        handlerWriteComment () {
+            if (!this.$isEmpty(this.kakaoId, 1)) {
                 this.loadingComment = true
                 if (!this.$isEmpty(this.commentText)) {
                     const baseURI = this.$proxyUrl + '/api/board/write/comment'
@@ -251,7 +255,6 @@ export default {
                     this.comments = array
                     this.commentText = ""
                 }
-                this.loadingComment = false
             }
         },
         handlerDeleteComment (no, userId) {
@@ -278,20 +281,24 @@ export default {
                     userId: this.kakaoId
                 }
                 this.sendPostData(baseURI, params)
-                this.loadingBoard = false
                 // 게시판 목록으로 이동
                 this.routerLink("BoardList", {id : this.catpage}, 1)
             }
         },
         sendPostData: async function(baseURI, params) {
-            await this.$http.post(baseURI, params)
+            const encrypt = this.$aesEncrypt(this.$secretKey, this.$secretIv, params)
+            await this.$http.post(baseURI, {param: encrypt})
             .then((result) => {
                 if (result.data.success === false) {
                     console.log(result)
                 }
+                if (this.loadingBoard) this.loadingBoard = false
+                if (this.loadingComment) this.loadingComment = false
             })
             .catch((error) => {
                 console.log(error)
+                if (this.loadingBoard) this.loadingBoard = false
+                if (this.loadingComment) this.loadingComment = false
             })
         },
         routerLink (name, params, type) {

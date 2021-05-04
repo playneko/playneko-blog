@@ -135,11 +135,11 @@
             ref="chatNavDrawer"
             :class="chatting ? chattingNaviShowClass : chattingNaviHideClass"
         >
-            <div v-if="!isLogged" class="error">
-                로그인을 해주시기 바랍니다.
+            <HeaderChat />
+            <div v-if="!isLogged" class="error-root">
+                <div class="error">로그인을 해주시기 바랍니다.</div>
             </div>
             <div v-else-if="isLogged">
-                <HeaderChat />
                 <ChatRoom />
                 <FooterChat />
             </div>
@@ -280,6 +280,9 @@ export default {
 }
 .list-item_title > div > div > div {
     font-size: 1rem !important;
+}
+.error-root {
+    margin-top: 100px;
 }
 .error {
     color: #fff;

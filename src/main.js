@@ -7,9 +7,13 @@ import firebase from 'firebase'
 import Ads from 'vue-google-adsense'
 import vueMoment from 'vue-moment'
 import vueCookies from 'vue-cookies'
+import vueCryptojs from 'vue-cryptojs'
 import kakaoLogin from 'vue-kakao-login'
 import isEmpty from './plugins/isEmpty'
 import vuetify from './plugins/vuetify'
+import aesEncrypt from './plugins/aesEncrypt'
+import aesDencrypt from './plugins/aesDencrypt'
+import asciiToHexa from './plugins/asciiToHexa'
 import Header from './components/page/Header'
 import HeaderChat from './components/chat/Header'
 import FooterChat from './components/chat/Footer'
@@ -21,6 +25,9 @@ Vue.prototype.$isEmpty = isEmpty
 Vue.prototype.$firebase = firebase
 Vue.prototype.$kakaoUrl = ""
 Vue.prototype.$proxyUrl = ""
+Vue.prototype.$aesEncrypt = aesEncrypt
+Vue.prototype.$aesDencrypt = aesDencrypt
+Vue.prototype.$asciiToHexa = asciiToHexa
 Vue.component('Header', Header)
 Vue.component('HeaderChat', HeaderChat)
 Vue.component('FooterChat', FooterChat)
@@ -40,6 +47,11 @@ Vue.use(Ads.InFeedAdsense)
 
 // 날짜시간 라이브러리
 Vue.use(vueMoment)
+
+// 암호화/복호화 라이브러리
+Vue.use(vueCryptojs)
+Vue.prototype.$secretKey = Vue.CryptoJS.enc.Utf8.parse("");
+Vue.prototype.$secretIv = Vue.CryptoJS.enc.Utf8.parse("");
 
 // Initialize Firebase
 var config = {

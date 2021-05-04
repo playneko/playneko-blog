@@ -44,13 +44,16 @@ export default {
         },
         getLoginProfile () {
             if (!this.$isEmpty(this.kakaoId, 1)) {
+                const encrypt = this.$aesEncrypt(this.$secretKey, this.$secretIv, {userId: this.kakaoId})
                 const baseURI = this.$proxyUrl + '/api/user/get/profile'
-                this.$http.post(baseURI, {userId: this.kakaoId})
+                this.$http.post(baseURI, {param: encrypt})
                 .then((result) => {
-                    const kakaoData = result.data.profile[0]
+                    const data = result.data
+                    const dencrypt = this.$aesDencrypt(this.$secretKey, this.$secretIv, data)
+                    const kakaoData = JSON.parse(dencrypt)
                     this.$store.commit('addKakaoId', this.kakaoId)
-                    this.$store.commit('addKakaoNickname', kakaoData.nickname)
-                    this.$store.commit('addKakaoThumbnail', kakaoData.thumbnail)
+                    this.$store.commit('addKakaoNickname', kakaoData[0].nickname)
+                    this.$store.commit('addKakaoThumbnail', kakaoData[0].thumbnail)
                     // 로그인 유무 True로 전환
                     this.$store.commit('addIsLoginAuth', true)
                 })
