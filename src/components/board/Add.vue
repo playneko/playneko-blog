@@ -80,9 +80,9 @@ export default {
     created() {
         // 로그인 유무
         this.isLogged = this.$store.getters.getIsLoginAuth ? this.$store.getters.getIsLoginAuth : false
-        if (this.isLogged) this.kakaoId = this.$store.getters.getKakaoId
         this.params = this.$store.getters.getParams ? this.$store.getters.getParams : null
         if (!this.isLogged || this.$isEmpty(this.params, 1)) this.doBackPage()
+        this.doKakaoProfile()
         this.fetchCategoryData()
     },
     methods: {
@@ -107,28 +107,66 @@ export default {
             } else if (this.$isEmpty(content)) {
                 this.error = "내용을 입력해 주시기 바랍니다."
             } else {
-                if (confirm("게시글을 저장 하시겠습니까?")) {
-                    this.error = null
-                    this.loadingBoard = true
-                    const baseURI = '/api/board/write/detail'
-                    const params = {
-                        boardCat: this.params.catpage,
-                        userId: this.kakaoId,
-                        boardSubject: this.subject,
-                        boardArticle: content,
-                        boardNotice: 0,
-                        boardSecret: 0,
-                        boardDat: 0,
-                        fileCode: "",
-                        thumbnail: ""
+                const getKakaoId = this.getKakaoId()
+                if (this.$isEmpty(getKakaoId, 1)) {
+                    this.error = "로그인 정보가 없습니다."
+                } else {
+                    if (confirm("게시글을 저장 하시겠습니까?")) {
+                        this.error = null
+                        this.loadingBoard = true
+                        const baseURI = '/api/board/write/detail'
+                        const params = {
+                            boardCat: this.params.catpage,
+                            userId: getKakaoId,
+                            boardSubject: this.subject,
+                            boardArticle: content,
+                            boardNotice: 0,
+                            boardSecret: 0,
+                            boardDat: 0,
+                            fileCode: "",
+                            thumbnail: ""
+                        }
+                        // 게시글 저장
+                        this.sendPostData(baseURI, params)
                     }
-                    // 게시글 저장
-                    this.sendPostData(baseURI, params)
                 }
             }
         },
         doBackPage () {
             this.$router.go(-1)
+        },
+        doKakaoProfile () {
+            // 로그인 유무
+            this.isLogged = this.$store.getters.getIsLoginAuth ? this.$store.getters.getIsLoginAuth : false
+            if (this.isLogged) {
+                // 로그인 정보 취득
+                const kakaoProfile = this.$store.getters.getkakaoData
+                if (!this.$isEmpty(kakaoProfile, 1)) {
+                    // 로그인 정보 복호화
+                    const dencrypt = this.$aesDencrypt(this.$secretKey, this.$secretIv, kakaoProfile, 1)
+                    const loginData = JSON.parse(dencrypt)
+                    if (loginData.isLoginAuth) {
+                        this.kakaoId = loginData.kakaoId
+                    } else {
+                        this.destoryAuth()
+                    }
+                } else {
+                    this.destoryAuth()
+                }
+            }
+        },
+        getKakaoId () {
+            // 아이디값 취득
+            const kakaoProfile = this.$store.getters.getkakaoData
+            if (!this.$isEmpty(kakaoProfile, 1)) {
+                // 로그인 정보 복호화
+                const dencrypt = this.$aesDencrypt(this.$secretKey, this.$secretIv, kakaoProfile, 1)
+                const loginData = JSON.parse(dencrypt)
+                if (loginData.isLoginAuth) {
+                    return loginData.kakaoId
+                }
+            }
+            return null
         },
         sendPostData: async function(baseURI, params) {
             const encrypt = this.$aesEncrypt(this.$secretKey, this.$secretIv, params)
@@ -155,6 +193,13 @@ export default {
             } else {
                 this.$router.push({name: name})
             }
+        },
+        destoryAuth () {
+            // 쿠키에서 토큰값 삭제
+            this.$cookies.remove("accessToken")
+            // 로그인 정보 삭제
+            this.$store.commit('addIsLoginAuth', false)
+            this.$store.commit('addKakaoData', null)
         },
         validate () {
             this.$refs.form.validate()

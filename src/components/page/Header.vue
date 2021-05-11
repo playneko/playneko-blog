@@ -140,8 +140,19 @@
                 <div class="error">로그인을 해주시기 바랍니다.</div>
             </div>
             <div v-else-if="isLogged">
-                <ChatRoom />
-                <FooterChat />
+                <div v-if="!isOpenChat" class="loading loading-root">
+                    <v-progress-circular
+                        :size="50"
+                        :width="7"
+                        color="purple"
+                        indeterminate
+                    ></v-progress-circular>
+                    <div class="loading-text">로그인을 해주시기 바랍니다.</div>
+                </div>
+                <div v-if="isOpenChat">
+                    <ChatRoom />
+                    <FooterChat />
+                </div>
             </div>
         </v-navigation-drawer>
     </header>
@@ -151,6 +162,7 @@
 export default {
     data: () => ({
         isLogged: false,
+        isOpenChat: false,
         drawer: false,
         chatting: false,
         group: null,
@@ -170,6 +182,9 @@ export default {
             // 카테고리 리스트 취득
             this.categoryList()
         }
+        // 로그인 정보 취득
+        this.doKakaoProfile()
+        // 화면 출력후 처리
         this.$nextTick(() => {
             const ref = this.$refs['chatNavDrawer']
             this.chatNavDrawer = ref.$el.querySelector('div.v-navigation-drawer__content')
@@ -198,22 +213,65 @@ export default {
         },
         handlerChatNavDrawer () {
             this.chatting = true
+            this.doGroupChatLogin()
             this.$store.commit('addIsChatting')
-        }
-    },
-    watch: {
-        '$store.getters.getKakaoId': function() {
+        },
+        doKakaoProfile () {
             // 로그인 유무
             this.isLogged = this.$store.getters.getIsLoginAuth ? this.$store.getters.getIsLoginAuth : false
             if (this.isLogged) {
-                this.nickname = this.$store.getters.getKakaoNickname
-                this.thumbnail = this.$store.getters.getKakaoThumbnail
+                // 로그인 정보 취득
+                const kakaoProfile = this.$store.getters.getkakaoData
+                if (!this.$isEmpty(kakaoProfile, 1)) {
+                    // 로그인 정보 복호화
+                    const dencrypt = this.$aesDencrypt(this.$secretKey, this.$secretIv, kakaoProfile, 1)
+                    const loginData = JSON.parse(dencrypt)
+                    if (loginData.isLoginAuth) {
+                        this.nickname = loginData.kakaoNickname
+                        this.thumbnail = loginData.kakaoThumbnail
+                    } else {
+                        this.destoryAuth()
+                    }
+                } else {
+                    this.destoryAuth()
+                }
             }
+        },
+        destoryAuth () {
+            // 쿠키에서 토큰값 삭제
+            this.$cookies.remove("accessToken")
+            // 로그인 정보 삭제
+            this.$store.commit('addIsLoginAuth', false)
+            this.$store.commit('addKakaoData', null)
+        },
+        doGroupChatLogin: async function() {
+            // 파이어베이스 그룹채팅 로그인 체크
+            await this.$firebase.auth().signInAnonymously()
+            .then(() => {
+                this.$firebase.auth().onAuthStateChanged((user) => {
+                    if (user) {
+                        // const uid = user.uid
+                        this.isOpenChat = true
+                    } else {
+                        this.isOpenChat = false
+                    }
+                })
+            })
+            .catch((error) => {
+                console.log(error)
+                this.isOpenChat = false
+            })
+        }
+    },
+    watch: {
+        '$store.getters.getkakaoData': function() {
+            this.doKakaoProfile()
         },
         '$store.getters.getIsChattingClose': function() {
             // 채팅방 닫기 버튼이 눌렸는지
             if (this.$store.getters.getIsChattingClose > 0) {
                 this.chatting = false
+                this.isOpenChat = false
                 this.$store.commit('addIsChattingClose', 0)
             }
         }
@@ -293,5 +351,17 @@ export default {
     margin: 0 auto !important;
     max-width: calc(100vw);
     box-shadow: 5px 5px 5px #bdbdbd;
+}
+.loading-root {
+    margin-top: 100px;
+}
+.loading-text {
+    color: #333333;
+}
+.loading {
+    display: flex;
+    color: #cddc39;
+    align-items: center;
+    justify-content: center;
 }
 </style>

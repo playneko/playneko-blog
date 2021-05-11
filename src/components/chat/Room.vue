@@ -49,10 +49,8 @@ export default {
     },
     created() {
         // 로그인 유무
-        this.isLogged = this.$store.getters.getIsLoginAuth ? this.$store.getters.getIsLoginAuth : false
-        if (this.isLogged) {
-            this.kakaoId = this.$store.getters.getKakaoId
-        }
+        this.doKakaoProfile()
+        // 채팅 리스트 취득
         this.doChatList()
     },
     methods: {
@@ -88,6 +86,22 @@ export default {
             const container = this.$el.querySelector("#container");
             const listName = document.getElementsByClassName("navigation-middle")[0]
             listName.scrollTop = container.scrollHeight;
+        },
+        doKakaoProfile () {
+            // 로그인 유무
+            this.isLogged = this.$store.getters.getIsLoginAuth ? this.$store.getters.getIsLoginAuth : false
+            if (this.isLogged) {
+                // 로그인 정보 취득
+                const kakaoProfile = this.$store.getters.getkakaoData
+                if (!this.$isEmpty(kakaoProfile, 1)) {
+                    // 로그인 정보 복호화
+                    const dencrypt = this.$aesDencrypt(this.$secretKey, this.$secretIv, kakaoProfile, 1)
+                    const loginData = JSON.parse(dencrypt)
+                    if (loginData.isLoginAuth) {
+                        this.kakaoId = loginData.kakaoId
+                    }
+                }
+            }
         }
     },
     watch: {

@@ -45,14 +45,13 @@
 
 <script>
 export default {
-    data() {
+    data () {
         return {
             loading: false,
             error: 0,
-            kakaoId: null
         }
     },
-    created() {
+    created () {
         // 로그인중일 경우 홈으로 이동
         if (this.$store.getters.getIsLoginAuth) this.$router.push({name: "Home"})
     },
@@ -77,6 +76,8 @@ export default {
             this.$cookies.set("accessToken", accessToken)
             // 로그인 유무 False로 전환
             this.$store.commit('addIsLoginAuth', false)
+            // 로그인 정보 삭제
+            this.$store.commit('addkakaoData', null)
             if (accessToken != null && accessToken != "") {
                 // 카카오 프로필 정보 취득
                 const headers = {'Authorization': `Bearer ${accessToken}`}
@@ -85,7 +86,6 @@ export default {
                 .then((result) => {
                     const kakaoData = result.data
                     const kakaoProfile = kakaoData.kakao_account.profile
-                    this.kakaoId = kakaoData.id
                     // 유저정보 체크및 등록/갱신
                     this.checkUser(kakaoData, kakaoProfile)
                 })
@@ -104,7 +104,7 @@ export default {
                 var count = result.data.cnt
                 if (count > 0) {
                     // 유저정보 디비에 갱신
-                    this.getLoginProfile()
+                    this.getLoginProfile(userId)
                 } else {
                     // 유저정보 디비에 등록
                     this.insertUser(userId, profile)
@@ -125,7 +125,7 @@ export default {
             const baseURI = this.$proxyUrl + '/api/user/insert/profile'
             this.$http.post(baseURI, {param: encrypt})
             .then(() => {
-                this.getLoginProfile()
+                this.getLoginProfile(userId)
             })
             .catch((error) => {
                 console.log(error)
@@ -133,18 +133,23 @@ export default {
                 this.loading = false
             })
         },
-        getLoginProfile () {
-            if (!this.$isEmpty(this.kakaoId, 1)) {
-                const encrypt = this.$aesEncrypt(this.$secretKey, this.$secretIv, {userId: this.kakaoId})
+        getLoginProfile (userId) {
+            if (!this.$isEmpty(userId.id, 1)) {
+                const encrypt = this.$aesEncrypt(this.$secretKey, this.$secretIv, {userId: userId.id})
                 const baseURI = this.$proxyUrl + '/api/user/get/profile'
                 this.$http.post(baseURI, {param: encrypt})
                 .then((result) => {
                     const data = result.data
                     const dencrypt = this.$aesDencrypt(this.$secretKey, this.$secretIv, data)
-                    const kakaoData = JSON.parse(dencrypt)
-                    this.$store.commit('addKakaoId', this.kakaoId)
-                    this.$store.commit('addKakaoNickname', kakaoData[0].nickname)
-                    this.$store.commit('addKakaoThumbnail', kakaoData[0].thumbnail)
+                    const kakaoJson = JSON.parse(dencrypt)
+                    // 로그인 정보 스토어에 암호화 저장
+                    const kakaoData = this.$aesEncrypt(this.$secretKey, this.$secretIv, {
+                        isLoginAuth: true,
+                        kakaoId: userId.id,
+                        kakaoNickname: kakaoJson[0].nickname,
+                        kakaoThumbnail: kakaoJson[0].thumbnail
+                    })
+                    this.$store.commit('addkakaoData', kakaoData)
                     // 로그인 유무 True로 전환
                     this.$store.commit('addIsLoginAuth', true)
                     this.loading = false

@@ -14,6 +14,7 @@ export default new Vuex.Store({
         kakaoId: "",
         kakaoNickname: "",
         kakaoThumbnail: "",
+        kakaoData: "",
         params: []
     },
     getters: {
@@ -47,6 +48,9 @@ export default new Vuex.Store({
         getKakaoThumbnail: state => {
             return state.kakaoThumbnail
         },
+        getkakaoData: state => {
+            return state.kakaoData
+        },
         getParams: state => {
             return state.params
         }
@@ -78,6 +82,9 @@ export default new Vuex.Store({
         },
         addKakaoThumbnail: (state, payload) => {
             state.kakaoThumbnail = payload
+        },
+        addkakaoData: (state, payload) => {
+            state.kakaoData = payload
         },
         addParams: (state, payload) => {
             state.params = payload

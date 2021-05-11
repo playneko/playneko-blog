@@ -89,6 +89,7 @@ export default {
             kakaoId: null,
             nickname: null,
             thumbnail: null,
+            loginProfile: null,
             accessToken: "",
         }
     },
@@ -96,9 +97,23 @@ export default {
         // 로그인 유무
         this.isLogged = this.$store.getters.getIsLoginAuth ? this.$store.getters.getIsLoginAuth : false
         if (this.isLogged) {
-            this.kakaoId = this.$store.getters.getKakaoId
-            this.nickname = this.$store.getters.getKakaoNickname
-            this.thumbnail = this.$store.getters.getKakaoThumbnail
+            // 스토어에서 로그인 정보 취득
+            this.loginProfile = this.$store.getters.getkakaoData
+            if (!this.$isEmpty(this.loginProfile, 1)) {
+                // 로그인 정보
+                const dencrypt = this.$aesDencrypt(this.$secretKey, this.$secretIv, this.loginProfile, 1)
+                const loginData = JSON.parse(dencrypt)
+                if (loginData.isLoginAuth) {
+                    this.nickname = loginData.kakaoNickname
+                    this.thumbnail = loginData.kakaoThumbnail
+                } else {
+                    // 로그인 유무 True로 전환
+                    this.$store.commit('addIsLoginAuth', false)
+                }
+            } else {
+                // 로그인 유무 True로 전환
+                this.$store.commit('addIsLoginAuth', false)
+            }
         } else {
             this.routerLink("Home")
         }
@@ -123,6 +138,9 @@ export default {
             if (confirm("카카오 프로필을 재취득 하시겠습니까? 기존 프로필 정보는 사라집니다.")) {
                 this.error = null
                 this.success = null
+                // 로그인 정보 삭제
+                this.loginProfile = null
+                this.$store.commit('addkakaoData', null)
                 // 억세스 토큰 쿠키가 존재하며, 로그인중이 아닌경우
                 if (this.$cookies.isKey("accessToken") && this.isLogged) {
                     this.loadingKakao = true
@@ -148,9 +166,19 @@ export default {
             }
         },
         updateUserProfile () {
-            if (!this.$isEmpty(this.kakaoId, 1)) {
+            let userId = null
+            if (!this.$isEmpty(this.loginProfile, 1)) {
+                // 로그인 정보
+                const dencrypt = this.$aesDencrypt(this.$secretKey, this.$secretIv, this.loginProfile, 1)
+                const loginData = JSON.parse(dencrypt)
+                userId = loginData.kakaoId
+            } else if (!this.$isEmpty(this.kakaoId, 1)) {
+                // 일반 정보
+                userId = this.kakaoId
+            }
+            if (!this.$isEmpty(userId, 1)) {
                 const encrypt = this.$aesEncrypt(this.$secretKey, this.$secretIv, {
-                    userId: this.kakaoId,
+                    userId: userId,
                     nickname: this.nickname,
                     thumbnail: this.thumbnail
                 })
@@ -158,9 +186,14 @@ export default {
                 this.$http.post(baseURI, {param: encrypt})
                 .then((result) => {
                     if (result.data.success === true) {
-                        this.$store.commit('addKakaoId', this.kakaoId)
-                        this.$store.commit('addKakaoNickname', this.nickname)
-                        this.$store.commit('addKakaoThumbnail', this.thumbnail)
+                        // 로그인 정보 스토어에 암호화 저장
+                        const kakaoData = this.$aesEncrypt(this.$secretKey, this.$secretIv, {
+                            isLoginAuth: true,
+                            kakaoId: userId,
+                            kakaoNickname: this.nickname,
+                            kakaoThumbnail: this.thumbnail
+                        })
+                        this.$store.commit('addkakaoData', kakaoData)
                         if (this.loading) {
                             this.success = "프로필 정보가 갱신 되었습니다."
                         }
@@ -184,9 +217,7 @@ export default {
             this.$cookies.remove("accessToken")
             // 로그인 정보 삭제
             this.$store.commit('addIsLoginAuth', false)
-            this.$store.commit('addKakaoId', null)
-            this.$store.commit('addKakaoNickname', null)
-            this.$store.commit('addKakaoThumbnail', null)
+            this.$store.commit('addKakaoData', null)
             // 로그인 페이지로 이동
             this.routerLink("Login")
         }

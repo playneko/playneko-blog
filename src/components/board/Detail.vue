@@ -172,15 +172,9 @@ export default {
         }
     },
     created() {
-        // 로그인 유무
-        this.isLogged = this.$store.getters.getIsLoginAuth ? this.$store.getters.getIsLoginAuth : false
-        if (this.isLogged) {
-            this.kakaoId = this.$store.getters.getKakaoId
-            this.nickname = this.$store.getters.getKakaoNickname
-            this.thumbnail = this.$store.getters.getKakaoThumbnail
-        }
         this.id = this.$route.params.id ? this.$route.params.id : null
         this.catpage = this.$route.params.cat ? this.$route.params.cat : 0
+        this.doKakaoProfile()
         this.fetchDetailData()
         this.fetchCommentData()
     },
@@ -214,14 +208,54 @@ export default {
                 console.log(error)
             })
         },
-        doAuthUserCheck (userId) {
-            if (!this.$isEmpty(userId, 1) && !this.$isEmpty(this.kakaoId, 1)) {
-                if (userId + "" === this.kakaoId + "") return true
+        doAuthUserCheck (userId, kakaoId) {
+            let getKakaoId = kakaoId
+            if (this.$isEmpty(kakaoId, 1)) {
+                getKakaoId = this.getKakaoId()
+            }
+            if (!this.$isEmpty(userId, 1) && !this.$isEmpty(getKakaoId, 1)) {
+                if (userId + "" === getKakaoId + "") return true
             }
             return false
         },
+        doKakaoProfile () {
+            // 로그인 유무
+            this.isLogged = this.$store.getters.getIsLoginAuth ? this.$store.getters.getIsLoginAuth : false
+            if (this.isLogged) {
+                // 로그인 정보 취득
+                const kakaoProfile = this.$store.getters.getkakaoData
+                if (!this.$isEmpty(kakaoProfile, 1)) {
+                    // 로그인 정보 복호화
+                    const dencrypt = this.$aesDencrypt(this.$secretKey, this.$secretIv, kakaoProfile, 1)
+                    const loginData = JSON.parse(dencrypt)
+                    if (loginData.isLoginAuth) {
+                        this.kakaoId = loginData.kakaoId
+                        this.nickname = loginData.kakaoNickname
+                        this.thumbnail = loginData.kakaoThumbnail
+                    } else {
+                        this.destoryAuth()
+                    }
+                } else {
+                    this.destoryAuth()
+                }
+            }
+        },
+        getKakaoId () {
+            // 아이디값 취득
+            const kakaoProfile = this.$store.getters.getkakaoData
+            if (!this.$isEmpty(kakaoProfile, 1)) {
+                // 로그인 정보 복호화
+                const dencrypt = this.$aesDencrypt(this.$secretKey, this.$secretIv, kakaoProfile, 1)
+                const loginData = JSON.parse(dencrypt)
+                if (loginData.isLoginAuth) {
+                    return loginData.kakaoId
+                }
+            }
+            return null
+        },
         handlerModifyBoard (userId) {
-            if (this.doAuthUserCheck(userId)) {
+            const getKakaoId = this.getKakaoId()
+            if (this.doAuthUserCheck(userId, getKakaoId)) {
                 const params = {
                     id: this.id,
                     catpage: this.catpage
@@ -231,20 +265,21 @@ export default {
             }
         },
         handlerWriteComment () {
-            if (!this.$isEmpty(this.kakaoId, 1)) {
+            const getKakaoId = this.getKakaoId()
+            if (!this.$isEmpty(getKakaoId, 1)) {
                 this.loadingComment = true
                 if (!this.$isEmpty(this.commentText)) {
                     const baseURI = this.$proxyUrl + '/api/board/write/comment'
                     const params = {
                         no: this.id,
-                        userId: this.kakaoId,
+                        userId: getKakaoId,
                         boardArticle: this.commentText
                     }
                     this.sendPostData(baseURI, params)
                     // 댓글에 가상 항목 배열에 추가
                     var array = [{
                         no: this.comments.length + 1,
-                        userId: this.kakaoId,
+                        userId: getKakaoId,
                         avatar: this.thumbnail,
                         nickname: this.nickname,
                         boardDate: "방금전",
@@ -258,12 +293,13 @@ export default {
             }
         },
         handlerDeleteComment (no, userId) {
-            if (this.doAuthUserCheck(userId) && confirm("댓글을 삭제 하시겠습니까?")) {
+            const getKakaoId = this.getKakaoId()
+            if (this.doAuthUserCheck(userId, getKakaoId) && confirm("댓글을 삭제 하시겠습니까?")) {
                 const baseURI = this.$proxyUrl + '/api/board/delete/comment'
                 const params = {
                     no: no,
                     id: this.id,
-                    userId: this.kakaoId
+                    userId: getKakaoId
                 }
                 this.sendPostData(baseURI, params)
                 // 댓글 배열에서 삭제항목 제거
@@ -273,12 +309,13 @@ export default {
             }
         },
         handlerDeleteBoard (userId) {
-            if (this.doAuthUserCheck(userId) && confirm("게시글을 삭제 하시겠습니까?")) {
+            const getKakaoId = this.getKakaoId()
+            if (this.doAuthUserCheck(userId, getKakaoId) && confirm("게시글을 삭제 하시겠습니까?")) {
                 this.loadingBoard = true
                 const baseURI = this.$proxyUrl + '/api/board/delete/detail'
                 const params = {
                     no: this.id,
-                    userId: this.kakaoId
+                    userId: getKakaoId
                 }
                 this.sendPostData(baseURI, params)
                 // 게시판 목록으로 이동
@@ -307,6 +344,18 @@ export default {
             } else {
                 this.$router.push({name: name})
             }
+        },
+        destoryAuth () {
+            // 쿠키에서 토큰값 삭제
+            this.$cookies.remove("accessToken")
+            // 로그인 정보 삭제
+            this.$store.commit('addIsLoginAuth', false)
+            this.$store.commit('addKakaoData', null)
+        }
+    },
+    watch: {
+        '$store.getters.getkakaoData': function() {
+            this.doKakaoProfile()
         }
     },
     components: {

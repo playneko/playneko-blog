@@ -8,14 +8,15 @@
 <script>
 export default {
     name: 'App',
-    data() {
+    data () {
         return {
             isLogged: false,
             accessToken: "",
             kakaoId: null
         }
     },
-    created() {
+    created () {
+        // this.destoryAuth()
         // 로그인 유무
         this.isLogged = this.$store.getters.getIsLoginAuth ? this.$store.getters.getIsLoginAuth : false
         // 유저정보 재취득
@@ -33,8 +34,7 @@ export default {
                 this.$http.post(baseURI, {}, {headers: headers})
                 .then((result) => {
                     const kakaoData = result.data
-                    this.kakaoId = kakaoData.id
-                    this.getLoginProfile()
+                    this.getLoginProfile(kakaoData)
                 })
                 .catch((error) => {
                     console.log(error)
@@ -42,18 +42,23 @@ export default {
                 })
             }
         },
-        getLoginProfile () {
-            if (!this.$isEmpty(this.kakaoId, 1)) {
-                const encrypt = this.$aesEncrypt(this.$secretKey, this.$secretIv, {userId: this.kakaoId})
+        getLoginProfile (userId) {
+            if (!this.$isEmpty(userId.id, 1)) {
+                const encrypt = this.$aesEncrypt(this.$secretKey, this.$secretIv, {userId: userId.id})
                 const baseURI = this.$proxyUrl + '/api/user/get/profile'
                 this.$http.post(baseURI, {param: encrypt})
                 .then((result) => {
                     const data = result.data
                     const dencrypt = this.$aesDencrypt(this.$secretKey, this.$secretIv, data)
-                    const kakaoData = JSON.parse(dencrypt)
-                    this.$store.commit('addKakaoId', this.kakaoId)
-                    this.$store.commit('addKakaoNickname', kakaoData[0].nickname)
-                    this.$store.commit('addKakaoThumbnail', kakaoData[0].thumbnail)
+                    const kakaoJson = JSON.parse(dencrypt)
+                    // 로그인 정보 스토어에 암호화 저장
+                    const kakaoData = this.$aesEncrypt(this.$secretKey, this.$secretIv, {
+                        isLoginAuth: true,
+                        kakaoId: userId.id,
+                        kakaoNickname: kakaoJson[0].nickname,
+                        kakaoThumbnail: kakaoJson[0].thumbnail
+                    }, 1)
+                    this.$store.commit('addkakaoData', kakaoData)
                     // 로그인 유무 True로 전환
                     this.$store.commit('addIsLoginAuth', true)
                 })
@@ -68,9 +73,6 @@ export default {
             this.$cookies.remove("accessToken")
             // 로그인 정보 삭제
             this.$store.commit('addIsLoginAuth', false)
-            this.$store.commit('addKakaoId', null)
-            this.$store.commit('addKakaoNickname', null)
-            this.$store.commit('addKakaoThumbnail', null)
         }
     },
     watch: {

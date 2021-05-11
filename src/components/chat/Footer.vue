@@ -48,12 +48,7 @@ export default {
     },
     created() {
         // 로그인 유무
-        this.isLogged = this.$store.getters.getIsLoginAuth ? this.$store.getters.getIsLoginAuth : false
-        if (this.isLogged) {
-            this.kakaoId = this.$store.getters.getKakaoId
-            this.nickname = this.$store.getters.getKakaoNickname
-            this.thumbnail = this.$store.getters.getKakaoThumbnail
-        }
+        this.doKakaoProfile()
     },
     methods: {
         routerLink: function(name) {
@@ -81,25 +76,26 @@ export default {
                 let nowTime = null
                 let params = null
                 let childByAutoId = null
+                const getKakaoId = this.getKakaoId()
                 if (!this.$isEmpty(this.preview)) {
-                    childByAutoId = ChildByAutoId("/message", this.kakaoId)
+                    childByAutoId = ChildByAutoId("/message", getKakaoId.kakaoId)
                     nowTime = this.$moment().format('YYYY-MM-DD HH:mm:ss')
                     params = {
-                        uuid: this.kakaoId,
-                        name: this.nickname,
-                        image: this.thumbnail,
+                        uuid: getKakaoId.kakaoId,
+                        name: getKakaoId.nickname,
+                        image: getKakaoId.thumbnail,
                         emoji: this.preview,
                         datetime : nowTime
                     }
                     this.SendProcessMessage(childByAutoId, params)
                 }
                 if (!this.$isEmpty(this.message)) {
-                    childByAutoId = ChildByAutoId("/message", this.kakaoId)
+                    childByAutoId = ChildByAutoId("/message", getKakaoId.kakaoId)
                     nowTime = this.$moment().format('YYYY-MM-DD HH:mm:ss')
                     params = {
-                        uuid: this.kakaoId,
-                        name: this.nickname,
-                        image: this.thumbnail,
+                        uuid: getKakaoId.kakaoId,
+                        name: getKakaoId.nickname,
+                        image: getKakaoId.thumbnail,
                         message: this.message,
                         datetime : nowTime
                     }
@@ -111,6 +107,56 @@ export default {
         SendProcessMessage (childByAutoId, params) {
             let ref = this.$firebase.database().ref('/message').child(this.chatid).child(childByAutoId)
             ref.set(params);
+        },
+        doKakaoProfile () {
+            // 로그인 유무
+            this.isLogged = this.$store.getters.getIsLoginAuth ? this.$store.getters.getIsLoginAuth : false
+            if (this.isLogged) {
+                // 로그인 정보 취득
+                const kakaoProfile = this.$store.getters.getkakaoData
+                if (!this.$isEmpty(kakaoProfile, 1)) {
+                    // 로그인 정보 복호화
+                    const dencrypt = this.$aesDencrypt(this.$secretKey, this.$secretIv, kakaoProfile, 1)
+                    const loginData = JSON.parse(dencrypt)
+                    if (loginData.isLoginAuth) {
+                        this.kakaoId = loginData.kakaoId
+                        this.nickname = loginData.kakaoNickname
+                        this.thumbnail = loginData.kakaoThumbnail
+                    } else {
+                        this.destoryAuth()
+                    }
+                } else {
+                    this.destoryAuth()
+                }
+            } else {
+                this.destoryAuth()
+            }
+        },
+        getKakaoId () {
+            // 아이디값 취득
+            const kakaoProfile = this.$store.getters.getkakaoData
+            if (!this.$isEmpty(kakaoProfile, 1)) {
+                // 로그인 정보 복호화
+                const dencrypt = this.$aesDencrypt(this.$secretKey, this.$secretIv, kakaoProfile, 1)
+                const loginData = JSON.parse(dencrypt)
+                if (loginData.isLoginAuth) {
+                    return {
+                        kakaoId: loginData.kakaoId,
+                        nickname: loginData.kakaoNickname,
+                        thumbnail: loginData.kakaoThumbnail
+                    }
+                }
+            }
+            return null
+        },
+        destoryAuth () {
+            // 쿠키에서 토큰값 삭제
+            this.$cookies.remove("accessToken")
+            // 로그인 정보 삭제
+            this.$store.commit('addIsLoginAuth', false)
+            this.$store.commit('addKakaoData', null)
+            // 채팅방 닫기
+            this.$store.commit('addIsChattingClose', 1)
         }
     },
     watch: {
